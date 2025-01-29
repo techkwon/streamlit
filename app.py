@@ -24,27 +24,28 @@ if st.button("Send"):
     if "api_key" not in st.session_state or not st.session_state["api_key"]:
         st.error("Please enter your Gemini API key in the sidebar.")
     elif user_message:
-        # Send message to Gemini API
+        # Define the API endpoint and headers
         url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={st.session_state['api_key']}"
         headers = {"Content-Type": "application/json"}
         body = {
             "contents": [{"parts": [{"text": user_message}]}]
         }
 
-try:
-    response = requests.post(url, headers=headers, json=body)
-    response.raise_for_status()  # HTTP 에러 발생 시 예외 처리
-    data = response.json()
+        try:
+            # API 호출
+            response = requests.post(url, headers=headers, json=body)
+            response.raise_for_status()  # HTTP 에러 발생 시 예외 처리
+            data = response.json()
 
-    # Parse response
-    bot_reply = data.get("contents", [{}])[0].get("parts", [{}])[0].get("text", "No response received.")
-    st.session_state["chat_log"].append({"user": user_message, "bot": bot_reply})
-except requests.exceptions.HTTPError as http_err:
-    st.error(f"HTTP error occurred: {http_err} (Status code: {response.status_code})")
-    st.error(f"Response content: {response.text}")
-except Exception as err:
-    st.error(f"An unexpected error occurred: {err}")
-    
+            # 응답에서 데이터 추출
+            bot_reply = data.get("contents", [{}])[0].get("parts", [{}])[0].get("text", "No response received.")
+            st.session_state["chat_log"].append({"user": user_message, "bot": bot_reply})
+        except requests.exceptions.HTTPError as http_err:
+            st.error(f"HTTP error occurred: {http_err} (Status code: {response.status_code})")
+            st.error(f"Response content: {response.text}")
+        except Exception as err:
+            st.error(f"An unexpected error occurred: {err}")
+                
 # Display chat log
 st.write("### Chat Log")
 for log in st.session_state["chat_log"]:
