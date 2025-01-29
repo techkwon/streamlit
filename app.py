@@ -32,13 +32,12 @@ if st.button("Send"):
         }
 
         try:
-            # API 호출
             response = requests.post(url, headers=headers, json=body)
             response.raise_for_status()  # HTTP 에러 발생 시 예외 처리
             data = response.json()
 
             # 응답에서 데이터 추출
-            bot_reply = data.get("contents", [{}])[0].get("parts", [{}])[0].get("text", "No response received.")
+            bot_reply = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "No response received.")
             st.session_state["chat_log"].append({"user": user_message, "bot": bot_reply})
         except requests.exceptions.HTTPError as http_err:
             st.error(f"HTTP error occurred: {http_err} (Status code: {response.status_code})")
