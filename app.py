@@ -31,16 +31,20 @@ if st.button("Send"):
             "contents": [{"parts": [{"text": user_message}]}]
         }
 
-        try:
-            response = requests.post(url, headers=headers, json=body)
-            response.raise_for_status()
-            data = response.json()
-            bot_reply = data.get("contents", [{}])[0].get("parts", [{}])[0].get("text", "No response received.")
-            # Update chat log
-            st.session_state["chat_log"].append({"user": user_message, "bot": bot_reply})
-        except requests.exceptions.RequestException as e:
-            st.error(f"Error communicating with Gemini API: {e}")
+try:
+    response = requests.post(url, headers=headers, json=body)
+    response.raise_for_status()  # HTTP 에러 발생 시 예외 처리
+    data = response.json()
 
+    # Parse response
+    bot_reply = data.get("contents", [{}])[0].get("parts", [{}])[0].get("text", "No response received.")
+    st.session_state["chat_log"].append({"user": user_message, "bot": bot_reply})
+except requests.exceptions.HTTPError as http_err:
+    st.error(f"HTTP error occurred: {http_err} (Status code: {response.status_code})")
+    st.error(f"Response content: {response.text}")
+except Exception as err:
+    st.error(f"An unexpected error occurred: {err}")
+    
 # Display chat log
 st.write("### Chat Log")
 for log in st.session_state["chat_log"]:
